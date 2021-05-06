@@ -1,6 +1,6 @@
 const path = require('path');
 
-const mongodb = require('mongodb');
+const initDB = require('./database').initDB;
 
 const express = require('express');
 const bodyParser = require('body-parser');
@@ -27,15 +27,13 @@ app.use((req, res, next) => {
 app.use('/products', productRoutes);
 app.use('/', authRoutes);
 
+initDB( (err, db) => {
+  
+  if(err){
+    console.log(err)
+  }else{
+    app.listen(3100);
+  }
 
-mongodb.connect('mongodb+srv://David:u1d0ToycqwH1YlXj@cluster0.9gsy2.mongodb.net/shop?retryWrites=true&w=majority',
-                { useNewUrlParser: true, useUnifiedTopology: true })
-.then( client => {
-  console.log('We are connected!');
-  client.close()
-})
-.catch( err  => {
-  console.log(err);
 })
 
-app.listen(3100);
