@@ -60,6 +60,7 @@ const products = [
 router.get('/', (req, res, next) => {
   // Return a list of dummy products
   // Later, this data will be fetched from MongoDB
+  /*
   const queryPage = req.query.page;
   const pageSize = 5;
   let resultProducts = [...products];
@@ -69,7 +70,25 @@ router.get('/', (req, res, next) => {
       queryPage * pageSize
     );
   }
-  res.json(resultProducts);
+  */
+
+  const db = getDB().db();
+  db.collection('products').find().toArray()
+  .then( resultProducts => {
+
+    //converting Decimal 128 to string.
+    resultProducts.map( obj => {
+      return obj.price = obj.price.toString();
+    })
+
+    res.status(200).json(resultProducts);
+  })
+  .catch(err => {
+    console.log(err);
+    res.status.json({message: 'Something went wrong with the database!'})
+  })
+
+  
 });
 
 // Get single product
