@@ -93,8 +93,29 @@ router.get('/', (req, res, next) => {
 
 // Get single product
 router.get('/:id', (req, res, next) => {
-  const product = products.find(p => p._id === req.params.id);
-  res.json(product);
+  const productId = req.params.id;
+  
+  const db = getDB().db();
+  db.collection('products').findOne({_id: ObjectID(productId)})
+  .then( productDoc => {
+    if(!productDoc){
+      throw new Error("This product doesn't exist!")
+    }
+
+    //converting 128 Decimal to string
+    productDoc.price = productDoc.price.toString();
+
+    res.status(200).json(productDoc); 
+
+  })
+  .catch( err => {
+    console.log(err);
+    res.status(500).json('Something went wrong with the database!');
+  })
+
+
+  //const product = products.find(p => p._id === req.params.id);
+  //res.json(product);
 });
 
 // Add new product
