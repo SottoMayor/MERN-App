@@ -25,8 +25,18 @@ router.post('/login', (req, res, next) => {
 router.post('/signup', (req, res, next) => {
   const email = req.body.email;
   const pw = req.body.password;
-  // Hash password before storing it in database => Encryption at Rest
-  bcrypt
+
+  //Checking if the email already exists
+  const db = getDB().db()
+  db.collection('users').findOne({email: email})
+  .then( user => {
+
+    if(user){
+      throw new Error('This email already exists! Pick up another.')
+    }
+
+    // Hash password before storing it in database => Encryption at Rest
+    bcrypt
     .hash(pw, 12)
     .then(hashedPW => {
       // Store hashedPW in database
@@ -36,10 +46,8 @@ router.post('/signup', (req, res, next) => {
         password: hashedPW
       }
 
-      const db = getDB().db()
       db.collection('users').insertOne(newUser)
       .then( insertedUser => {
-        console.log(insertedUser);
         const token = createToken();
         res
         .status(201)
@@ -50,6 +58,8 @@ router.post('/signup', (req, res, next) => {
         res.status(500).json({ message: 'Creating the user failed.' });
       });
     })
+
+  })
     .catch(err => {
       console.log(err);
       res.status(500).json({ message: 'Creating the user failed.' });
