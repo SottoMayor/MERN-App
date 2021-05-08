@@ -8,6 +8,8 @@ const createToken = () => {
   return jwt.sign({}, 'secret', { expiresIn: '1h' });
 };
 
+const getDB = require('../database').getDB;
+
 router.post('/login', (req, res, next) => {
   const email = req.body.email;
   const pw = req.body.password;
@@ -28,11 +30,25 @@ router.post('/signup', (req, res, next) => {
     .hash(pw, 12)
     .then(hashedPW => {
       // Store hashedPW in database
-      console.log(hashedPW);
-      const token = createToken();
-      res
+
+      const newUser = {
+        email: email,
+        password: hashedPW
+      }
+
+      const db = getDB().db()
+      db.collection('users').insertOne(newUser)
+      .then( insertedUser => {
+        console.log(insertedUser);
+        const token = createToken();
+        res
         .status(201)
-        .json({ token: token, user: { email: 'dummy@dummy.com' } });
+        .json({ token: token, user: { email: email } });
+      })
+      .catch(err => {
+        console.log(err);
+        res.status(500).json({ message: 'Creating the user failed.' });
+      });
     })
     .catch(err => {
       console.log(err);
